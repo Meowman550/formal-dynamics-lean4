@@ -9,8 +9,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
+
+      - name: Install elan
+        shell: bash
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch pinned dependencies
+        shell: bash
+        run: |
+          export PATH="$HOME/.elan/bin:$PATH"
+          MATHLIB_NO_CACHE_ON_UPDATE=1 lake update
+          lake exe cache get Mathlib.Data.Real.Basic Mathlib.Tactic.Linarith Mathlib.Tactic.Ring Mathlib.Tactic.Positivity
+
+      - name: Build
+        shell: bash
+        run: |
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake build
+
       - name: Check proof placeholders
+        shell: bash
         run: python3 scripts/check_placeholders.py
+
       - name: Check axiom dependencies
-        run: python3 scripts/check_axioms.py
+        shell: bash
+        run: |
+          export PATH="$HOME/.elan/bin:$PATH"
+          python3 scripts/check_axioms.py
