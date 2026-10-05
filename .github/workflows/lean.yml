@@ -1,0 +1,16 @@
+name: Lean verification
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+      - name: Check proof placeholders
+        run: python3 scripts/check_placeholders.py
+      - name: Check axiom dependencies
+        run: python3 scripts/check_axioms.py
